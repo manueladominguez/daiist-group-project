@@ -19,16 +19,16 @@
       "cases": 10,
       "correct": 0.8,
       "sent_to_review": 0.4,
-      "median_latency_s": 0.008,
-      "mean_cost_eur": 0.0
+      "median_latency_s": 0.009,
+      "mean_cost_eur": 0.001
     },
     {
       "kind": "normal",
       "cases": 16,
       "correct": 1.0,
       "sent_to_review": 0.375,
-      "median_latency_s": 0.008,
-      "mean_cost_eur": 0.0
+      "median_latency_s": 0.009,
+      "mean_cost_eur": 0.001
     },
     {
       "kind": "out_of_scope",
@@ -43,8 +43,8 @@
       "cases": 8,
       "correct": 1.0,
       "sent_to_review": 1.0,
-      "median_latency_s": 0.008,
-      "mean_cost_eur": 0.0
+      "median_latency_s": 0.009,
+      "mean_cost_eur": 0.001
     }
   ],
   "component_a": {
@@ -66,7 +66,7 @@
     "main_baseline": "B2",
     "B1_rule": "intervene when tool wear >= 205 min",
     "B2_rule": "intervene if tool wear >= 207 min or torque >= 60.5 Nm or temperature difference <= 8.6 K",
-    "llm_eur_per_request_used": 0.0,
+    "llm_eur_per_request_used": 0.001197,
     "policies": {
       "B0": {
         "cost_per_1000_eur": 136000.0,
@@ -93,7 +93,7 @@
         "unnecessary_interventions_per_1000": 108.5
       },
       "MaintAI": {
-        "cost_per_1000_eur": 52182.5,
+        "cost_per_1000_eur": 52183.7,
         "recall": 0.868,
         "precision": 0.881,
         "interventions_per_1000": 33.5,
@@ -101,11 +101,11 @@
         "unnecessary_interventions_per_1000": 4.0
       }
     },
-    "saving_vs_main_per_1000_eur": 38067.5,
+    "saving_vs_main_per_1000_eur": 38066.3,
     "saving_vs_main_pct": 42.2,
     "saving_95ci_per_1000_eur": [
-      25894.8,
-      50790.5
+      25893.6,
+      50789.3
     ]
   },
   "component_b": {
@@ -126,13 +126,13 @@
     "rubric": "judge-rubric-v1",
     "key_available": true,
     "graded": 68,
-    "calls_this_run": 2,
-    "tokens_this_run": 2606,
-    "agent_pass_rate": 0.588,
+    "calls_this_run": 26,
+    "tokens_this_run": 30320,
+    "agent_pass_rate": 0.676,
     "agent_R1_addresses_risk": 1.0,
     "agent_R2_actionable": 1.0,
-    "agent_R3_faithful": 0.647,
-    "agent_R4_safe_consistent": 0.941,
+    "agent_R3_faithful": 0.706,
+    "agent_R4_safe_consistent": 0.971,
     "template_pass_rate": 0.618,
     "template_R1_addresses_risk": 1.0,
     "template_R2_actionable": 0.618,
@@ -142,28 +142,38 @@
   "human_agreement": {
     "labels": 30,
     "compared": 30,
-    "agreement": 0.833,
-    "cohen_kappa": 0.627,
+    "agreement": 0.8,
+    "cohen_kappa": 0.492,
     "human_pass_rate": 0.767,
-    "judge_pass_rate": 0.6,
+    "judge_pass_rate": 0.7,
     "disagreements": [
-      "c21",
+      "c32",
       "c34",
+      "c33",
       "c07",
       "c19",
       "c10"
     ]
   },
   "operations": {
-    "latency_p50_s": 0.008,
-    "latency_p95_s": 0.009,
-    "tokens_per_request_mean": 0.0,
-    "eur_per_request_mean": 0.0,
-    "eur_per_request_max": 0.0,
-    "requests_with_llm_calls": 0,
+    "tokens_per_request_mean": 2597.9,
+    "tokens_per_request_max": 5078,
+    "eur_per_request_mean": 0.001197,
+    "eur_per_request_max": 0.002542,
+    "eur_per_month_at_business_volume": 35.91,
+    "requests_with_llm_usage": 34,
     "degraded_share": 0.0,
-    "run_cost_eur": 0.0,
-    "run_tokens": 0
+    "cache_hit_share": 1.0,
+    "latency_this_run_p50_s": 0.009,
+    "latency_this_run_p95_s": 0.086,
+    "latency_this_run_is_live": false,
+    "live_sample_requests": 10,
+    "live_sample_degraded": 2,
+    "live_sample_date": "2026-11-28",
+    "live_latency_p50_s": 1.03,
+    "live_latency_p95_s": 3.09,
+    "live_latency_max_s": 3.15,
+    "live_eur_per_request_mean": 0.001043
   },
   "errors_by_cause": {
     "component A: risk on the wrong side of the threshold": 2
@@ -172,8 +182,8 @@
     "1_cost": {
       "saving_pct": 42.2,
       "ci_eur": [
-        25894.8,
-        50790.5
+        25893.6,
+        50789.3
       ],
       "target": ">= 10% cheaper than the main baseline, CI above 0"
     },
@@ -191,9 +201,9 @@
       "target": "none"
     },
     "5_quality": {
-      "agent_pass": 0.588,
+      "agent_pass": 0.676,
       "template_pass": 0.618,
-      "kappa": 0.627,
+      "kappa": 0.492,
       "human_labels": 30,
       "target": "agent pass >= 0.80 and above the template, kappa >= 0.6 on >= 20 labels"
     },
@@ -202,8 +212,10 @@
       "target": "all"
     },
     "7_operations": {
-      "p95_s": 0.009,
-      "eur_per_request": 0.0,
+      "live_p95_s": 3.09,
+      "live_sample_requests": 10,
+      "eur_per_request": 0.001197,
+      "note": "latency from a live sample (eval/live_sample.csv); live traffic is in the Monitoring tab",
       "target": "p95 < 15 s and < \u20ac0.01 per request"
     }
   }
