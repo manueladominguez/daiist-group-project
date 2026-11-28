@@ -169,7 +169,7 @@ WP3 (PR #12) was merged on 27 Nov 2026 and Render now serves the real agent (`ag
 | Quota and cache | Daily budget rebuilt from the logs, at most 12 calls a minute, at most 2 retries on 429, degraded mode when exhausted; `LLM_CACHE=off` on Render, `readonly` locally (no calls on a cache miss) |
 | Memory | The Gemini client adds about 43 MB locally; estimated local peak about 315 MB (limit 512 MB) |
 
-**Pending:** validation with **real** Gemini (style invariance on live answers, latency, cost and memory on Render). WP3 reports three short live smoke tests of its own (14 calls, `docs/WP3_AGENT.md`); our team checks have not used Gemini.
+**Real Gemini (28 Nov 2026):** controlled validation with 16 Gemini requests, isolated from PostgreSQL and the bandit: [`docs/GEMINI_VALIDATION.md`](GEMINI_VALIDATION.md). Decisions identical across the three styles; three problems recorded (economic faithfulness in low-risk `cost` notes, variable agent review request across requests, 31 s latency after a 429). **Pending:** WP3's fix (`agent-v2`) and memory and CPU on Render with the real agent.
 
 ## 7. Full check.py in a clean clone
 

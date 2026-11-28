@@ -15,10 +15,10 @@ Fase actual: **documentación, integración y validación**. Ya no se añaden fu
 | WP0 · Base | Manuela | ✅ En `main` | Contratos (`schemas.py`), `render.yaml`, Render + PostgreSQL | — |
 | WP1 · Componente A | Ignacio (GitHub `94921234`) | ✅ En `main` (PR #9) y **desplegado en Render** | Gradient Boosting con features derivadas y calibración sigmoide (`maintai-gb-sigmoid-v1`), umbral 0,19 elegido con el modelo económico **en validación**, banda de incertidumbre, 4 clasificadores de modo de fallo, `models/model_card.json`. En validación: recall 0,81, precisión 0,93, PR-AUC 0,883. **El test aún no se ha usado** (`test_evaluated: false`) | Evaluación final en test (una sola vez, la hace WP4). El docstring de `component_a.py` todavía dice "STUB" (avisar a Ignacio). Su rama tiene 3 commits más sin PR, con unas 2.400 palabras para el REPORT (ver 0.5) |
 | WP2 · Herramientas y economía | Marta (`martabermejo`) | ✅ En `main` (PR #8) | `maintai/data/*.json`, herramientas completas, modelo de costes con bootstrap, `eval/economics_sensitivity.py`, 26 tests (14 + 12) | Usar las herramientas desde el agente real (WP3) |
-| WP3 · Agente | Jacobo | ✅ En `main` (PR #12) y **desplegado en Render** | Cliente Gemini (`gemini-3.5-flash-lite`), agente `agent-v1` con 1 llamada en riesgo bajo y 3 en el resto, decisión sin estilo y guardrails que rechazan diferencias, presupuesto diario reconstruido desde los logs, límite por minuto, reintentos, modo degradado, caché (`off` en Render), 26 tests con Gemini simulado | Validación con Gemini real del equipo (invariancia, coste, latencia, memoria en Render); caché de la evaluación (`eval/llm_cache/`) tras ejecutar WP4 |
+| WP3 · Agente | Jacobo | ✅ En `main` (PR #12) y **desplegado en Render** | Cliente Gemini (`gemini-3.5-flash-lite`), agente `agent-v1` con 1 llamada en riesgo bajo y 3 en el resto, decisión sin estilo y guardrails que rechazan diferencias, presupuesto diario reconstruido desde los logs, límite por minuto, reintentos, modo degradado, caché (`off` en Render), 26 tests con Gemini simulado | Validación con Gemini real hecha el 28 nov (16 llamadas): decisiones iguales en los tres estilos, pero 3 problemas (`docs/GEMINI_VALIDATION.md`); corregir y desplegar `agent-v2`; memoria en Render; caché de la evaluación (`eval/llm_cache/`) tras ejecutar WP4 |
 | WP4 · Evaluación | Ana Maria (rama `feat/wp4-evaluation`) | 🟡 Terminado en su rama `feat/wp4-evaluation`, **sin PR todavía** | 41 casos (16 normal, 10 hard, 8 review, 7 out_of_scope), baselines B1/B2 ajustados con train + validación, juez LLM con rúbrica de 4 puntos y caché, herramienta de etiquetado, `evaluate.py` completo, 8 tests | Abrir el PR; `eval/human_labels.csv` sigue vacío (el profesor y check.py exigen al menos 20 etiquetas propias para medir el acuerdo del juez; nuestro objetivo interno es 30); ejecutar la evaluación **cuando el agente real esté**, porque usa el test (una vez) y gasta cuota del juez |
 | WP5 · Operación | Por confirmar | 🔴 No empezado | `monitor.py` (PSI, alertas) de la plantilla | `eval/reference.csv` y `eval/shifted.csv` (**check.py se para en el paso 2 por esto**), `main.py reference` → `monitoring/reference_features.csv` (paso 4), umbral de drift |
-| WP6 · Bandit | Manuela | ✅ En `main` y desplegado (sin evidencia real) | Bandit, simulador, calibración, métricas de feedback, límites por sesión, exportación, 41 tests; escenarios de la campaña ya **definitivos** con el modelo real | Campaña real, cuando WP3 esté desplegado: [`docs/RL_FEEDBACK_PROTOCOL.md`](RL_FEEDBACK_PROTOCOL.md) |
+| WP6 · Bandit | Manuela | ✅ En `main` y desplegado (sin evidencia real) | Bandit, simulador, calibración, métricas de feedback, límites por sesión, exportación, 41 tests; escenarios definitivos; validación controlada con Gemini real (28 nov, 16 llamadas, `docs/GEMINI_VALIDATION.md`); kit de campaña listo (`docs/RL_CAMPAIGN_KIT.md`) | Campaña real, en cuanto WP3 despliegue `agent-v2` |
 | WP7 · Interfaz | Manuela | ✅ En `main` | App y Monitoring, accesible, 375 px, `/run` único endpoint; compatible con WP1, WP2 y WP3 (comprobado con Gemini simulado) | Correcciones de integración en `fix/integration-polish` (umbral frente a break-even, modos de fallo independientes, etiqueta `part_out_of_stock`) |
 | WP8 · Informe | Manuela + todos | 🟡 En curso | Business case y RL resumidos | Ver presupuesto en 0.5 |
 
@@ -54,12 +54,12 @@ WP4 (PR) ── ya se puede fusionar: no depende del agente para pasar sus tests
 
 | # | Tarea | Responsable | Límite propuesto | Bloquea |
 |---|---|---|---|---|
-| 1 | ~~Agente real~~ ✅ fusionado (PR #12). Queda: validación con Gemini real y caché de la evaluación | WP3 | Sáb 28, 14:00 | Evaluación, campaña |
+| 1 | ~~Agente real~~ ✅ fusionado (PR #12). Queda: **corregir el error de fidelidad económica y subir a `agent-v2`** (`docs/GEMINI_VALIDATION.md`), decidir sobre la revisión variable, caché de la evaluación | WP3 (Jacobo) | Sáb 28, 16:00 | Campaña, evaluación |
 | 2 | `eval/reference.csv`, `eval/shifted.csv`, `main.py reference`, umbral de drift | WP5 | Sáb 28, 14:00 | check.py pasos 2 y 4 |
 | 3 | Abrir el PR de WP4 (resolver el conflicto trivial de `CONTRIBUTIONS.md`) y etiquetar órdenes en `human_labels.csv` (mínimo obligatorio 20, objetivo interno 30) | WP4 | Sáb 28, 12:00 | Acuerdo del juez |
 | 4 | PR con el texto de WP1 para el REPORT, **recortado** (ver 0.5) | WP1 | Sáb 28, 18:00 | Informe |
 | 5 | Ejecutar `evaluate.py` con el sistema final (test una vez, cuota del juez autorizada) | WP4 | Dom 29, 12:00 | Evaluation, Decision |
-| 6 | Campaña de feedback real (150 valoraciones si hay cuota; puede no alcanzarse) | Manuela + todos | Dom 29, 18:00 | Bonus |
+| 6 | Campaña de feedback real (150 valoraciones si hay cuota; puede no alcanzarse): sábado 18:00–19:30 equipo, domingo 10:00–11:30 externos (`docs/RL_CAMPAIGN_KIT.md`) | Manuela + todos | Dom 29, 18:00 | Bonus |
 | 7 | Secciones del REPORT de cada WP | Cada responsable | Dom 29, 20:00 | Entrega |
 | 8 | Congelación, check.py en un clon limpio, tag `final`, PR al profesor, Blackboard | Manuela | Dom 29, 22:00 / lun 30 | Entrega |
 
@@ -83,6 +83,26 @@ WP4 (PR) ── ya se puede fusionar: no depende del agente para pasar sus tests
 | **Total** | **unas 1.930** | **unas 4.360** | **unas 3.020** | |
 
 Los textos largos que se han quitado del REPORT están completos en [`docs/BUSINESS_CASE.md`](BUSINESS_CASE.md) y en el apéndice de [`docs/WP6_BANDIT.md`](WP6_BANDIT.md).
+
+### 0.6 Auditoría de la rúbrica (28 nov, mediodía)
+
+Leyenda: ✅ hecho y con evidencia · 🟡 implementado o parcialmente validado · ❌ pendiente.
+
+| Requisito del profesor | Estado | Evidencia que ya existe | Qué falta |
+|---|---|---|---|
+| 1 · Caso de negocio, baseline, éxito y valor en € | ✅ | REPORT, Business case; criterios preregistrados en `1d0135f`, sin cambios | Resultados frente al baseline (WP4) |
+| 2 · Dos componentes encadenados (ML tabular → agente LLM) | ✅ implementado · 🟡 validado | Desplegado en Render sin stubs; tests 26 + 41 + 12 + 14; validación con Gemini real en 9 peticiones (`docs/GEMINI_VALIDATION.md`) | Corregir el error de fidelidad (`agent-v2`); evaluación completa (WP4) |
+| 3 · App pública en Render con App y Monitoring, claves en Render | ✅ | https://maintai-238a.onrender.com; `render.yaml`; la clave solo está en las variables de entorno de Render | Medir memoria y CPU con el agente real |
+| 4 · Log de cada petición sin datos personales | ✅ esquema · 🟡 producción | Campos verificados en PostgreSQL (`INTEGRATION_CHECKLIST.md` 6.4); registro válido en la simulación de `check.py` | Ver en PostgreSQL un registro con el agente real (tokens y coste reales) y valoraciones reales |
+| 5a · Señal de calidad en el tiempo y regla de alerta | 🟡 | Panel de Monitoring con revisión y 👎 por hora; reglas visibles en el panel | Justificar el umbral de la alerta en REPORT, Operations (WP5) |
+| 5b · Comprobación de drift y `drift-demo` | ❌ | — | Todo WP5: `reference.csv`, `shifted.csv`, referencia, umbral, demo |
+| 6a · Evaluación de cada componente | 🟡 | Componente A en validación (model card); agente con 26 tests offline | Componente A en test (una vez); componente B con su métrica (WP4) |
+| 6b · Producto entero en 30+ casos frente al baseline | 🟡 | 41 casos y baselines en la rama de WP4 (sin PR) | Fusionar y ejecutar con `agent-v2` |
+| 6c · Juez LLM contrastado con 20+ etiquetas propias | ❌ | Juez y rúbrica en la rama de WP4 | 20+ etiquetas en `human_labels.csv`; comprobar el límite diario del modelo del juez |
+| 6d · Coste por petición (tokens, €, segundos) | 🟡 | Medido en 9 peticiones controladas y en las pruebas de WP3 | Medias de la evaluación final y coste mensual |
+| 7 · Decisión (revisión humana, casos/día, go / no-go) | ❌ | Borrador de WP1 con datos de validación | Cifras del test y de la evaluación |
+| 8 · REPORT de unas 3.000 palabras, entrega y presentación | ❌ | Unas 4.370 palabras; criterios intactos | Secciones de WP3, WP4 y WP5; recorte; tag `final`, PR y Blackboard |
+| Bonus de RL | 🟡 | Bucle, recompensa, exploración y riesgos implementados y documentados; persistencia verificada; elegibilidad comprobada; campaña preparada | **Aprendizaje con valoraciones reales**: sin la campaña no hay bonus |
 
 ## 1. Cómo empezar (cada persona, una vez)
 

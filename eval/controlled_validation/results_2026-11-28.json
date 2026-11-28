@@ -1,0 +1,624 @@
+{
+  "run": {
+    "date": "2026-11-28",
+    "type": "controlled_test (not evaluation, not production)",
+    "code": "fix/integration-polish at 9b73bae (agent identical to main 2e9893f, agent-v1)",
+    "model": "gemini-3.5-flash-lite",
+    "gemini_requests": 16,
+    "authorised": 30,
+    "cache": "off",
+    "logs": "temporary local folder, not PostgreSQL, not committed",
+    "inputs": "hand-written readings only (ui/presets.py and one hand-written high-risk reading); no data split read"
+  },
+  "cases": [
+    {
+      "case": "A_out_of_scope",
+      "arm": null,
+      "status": "out_of_scope",
+      "risk_band": null,
+      "review": false,
+      "degraded": false,
+      "degraded_reason": "",
+      "latency_s": 0.009,
+      "cost_eur": 0.0,
+      "tokens": 0,
+      "llm": null,
+      "decision_source": "refused",
+      "decision_errors": null,
+      "writing_warnings": null,
+      "versions": {
+        "component_a": "maintai-gb-sigmoid-v1",
+        "component_b": "agent-v1"
+      },
+      "decision": null,
+      "review_reasons": null,
+      "validation_errors": null,
+      "tools": null,
+      "cost": null,
+      "steps": null,
+      "justification": null,
+      "ui_ok": true,
+      "ui_unknown_reason_keys": null,
+      "ui_degraded_banner": null,
+      "budget_used_after": 0
+    },
+    {
+      "case": "B_low_checklist",
+      "arm": "checklist",
+      "status": "ok",
+      "risk_band": "low",
+      "review": false,
+      "degraded": false,
+      "degraded_reason": "",
+      "latency_s": 5.455,
+      "cost_eur": 0.000424,
+      "tokens": 1136,
+      "llm": {
+        "model": "gemini-3.5-flash-lite",
+        "llm_calls": 1,
+        "tokens_in": 1079,
+        "tokens_out": 57,
+        "tokens_thinking": 0,
+        "cache_hit": false,
+        "retries": 0,
+        "rate_limited": false
+      },
+      "decision_source": "rules_low_risk",
+      "decision_errors": [],
+      "writing_warnings": [],
+      "versions": {
+        "component_a": "maintai-gb-sigmoid-v1",
+        "component_b": "gemini-3.5-flash-lite|agent-v1",
+        "strategy": "checklist",
+        "bandit": "ts-v1"
+      },
+      "decision": {
+        "priority": "P4",
+        "action": "monitor",
+        "failure_mode_addressed": "none",
+        "part_ids": [],
+        "window_id": null,
+        "requires_human_review": false
+      },
+      "review_reasons": [],
+      "validation_errors": [],
+      "tools": [],
+      "cost": null,
+      "steps": [
+        "Keep normal operation.",
+        "Re-check at the next reading.",
+        "Watch tool wear of 40.0 min."
+      ],
+      "justification": "The failure probability of 0.17 % is in the low risk band, so monitoring is enough.",
+      "ui_ok": true,
+      "ui_unknown_reason_keys": [],
+      "ui_degraded_banner": false,
+      "budget_used_after": 1
+    },
+    {
+      "case": "B_low_cost",
+      "arm": "cost",
+      "status": "ok",
+      "risk_band": "low",
+      "review": false,
+      "degraded": false,
+      "degraded_reason": "",
+      "latency_s": 2.309,
+      "cost_eur": 0.000492,
+      "tokens": 1207,
+      "llm": {
+        "model": "gemini-3.5-flash-lite",
+        "llm_calls": 1,
+        "tokens_in": 1126,
+        "tokens_out": 81,
+        "tokens_thinking": 0,
+        "cache_hit": false,
+        "retries": 0,
+        "rate_limited": false
+      },
+      "decision_source": "rules_low_risk",
+      "decision_errors": [],
+      "writing_warnings": [],
+      "versions": {
+        "component_a": "maintai-gb-sigmoid-v1",
+        "component_b": "gemini-3.5-flash-lite|agent-v1",
+        "strategy": "cost",
+        "bandit": "ts-v1"
+      },
+      "decision": {
+        "priority": "P4",
+        "action": "monitor",
+        "failure_mode_addressed": "none",
+        "part_ids": [],
+        "window_id": null,
+        "requires_human_review": false
+      },
+      "review_reasons": [],
+      "validation_errors": [],
+      "tools": [],
+      "cost": null,
+      "steps": [
+        "Keep normal operation and re-check at the next reading.",
+        "Watch the failure probability of 0.17 % and tool wear of 40.0 min."
+      ],
+      "justification": "A breakdown would cost about 4.0 times more than this intervention, which needs 1.5 h of planned downtime. The risk is low, so monitoring is enough.",
+      "ui_ok": true,
+      "ui_unknown_reason_keys": [],
+      "ui_degraded_banner": false,
+      "budget_used_after": 2
+    },
+    {
+      "case": "B_low_root_cause",
+      "arm": "root_cause",
+      "status": "ok",
+      "risk_band": "low",
+      "review": false,
+      "degraded": false,
+      "degraded_reason": "",
+      "latency_s": 1.246,
+      "cost_eur": 0.000675,
+      "tokens": 1313,
+      "llm": {
+        "model": "gemini-3.5-flash-lite",
+        "llm_calls": 1,
+        "tokens_in": 1155,
+        "tokens_out": 158,
+        "tokens_thinking": 0,
+        "cache_hit": false,
+        "retries": 0,
+        "rate_limited": false
+      },
+      "decision_source": "rules_low_risk",
+      "decision_errors": [],
+      "writing_warnings": [],
+      "versions": {
+        "component_a": "maintai-gb-sigmoid-v1",
+        "component_b": "gemini-3.5-flash-lite|agent-v1",
+        "strategy": "root_cause",
+        "bandit": "ts-v1"
+      },
+      "decision": {
+        "priority": "P4",
+        "action": "monitor",
+        "failure_mode_addressed": "none",
+        "part_ids": [],
+        "window_id": null,
+        "requires_human_review": false
+      },
+      "review_reasons": [],
+      "validation_errors": [],
+      "tools": [],
+      "cost": null,
+      "steps": [
+        "Measure the tool wear of 40.0 min to confirm the condition.",
+        "Review the failure probability of 0.17 % and confirm normal operation.",
+        "Keep normal operation.",
+        "Re-check at the next reading.",
+        "Watch the tool wear of 40.0 min."
+      ],
+      "justification": "The failure probability of 0.17 % remains well below the threshold, with a tool wear of 40.0 min, a mechanical power of 6048.6 W, an overstrain of 1520.0 minNm, and a temperature difference (process minus air) of 10.3 K indicating stable operating conditions. Therefore, monitoring is enough.",
+      "ui_ok": true,
+      "ui_unknown_reason_keys": [],
+      "ui_degraded_banner": false,
+      "budget_used_after": 3
+    },
+    {
+      "case": "C_high_checklist",
+      "arm": "checklist",
+      "status": "ok",
+      "risk_band": "high",
+      "review": true,
+      "degraded": false,
+      "degraded_reason": "",
+      "latency_s": 4.707,
+      "cost_eur": 0.002324,
+      "tokens": 4824,
+      "llm": {
+        "model": "gemini-3.5-flash-lite",
+        "llm_calls": 3,
+        "tokens_in": 4321,
+        "tokens_out": 306,
+        "tokens_thinking": 197,
+        "cache_hit": false,
+        "retries": 0,
+        "rate_limited": false
+      },
+      "decision_source": "llm",
+      "decision_errors": [],
+      "writing_warnings": [],
+      "versions": {
+        "component_a": "maintai-gb-sigmoid-v1",
+        "component_b": "gemini-3.5-flash-lite|agent-v1",
+        "strategy": "checklist",
+        "bandit": "ts-v1"
+      },
+      "decision": {
+        "priority": "P2",
+        "action": "replace_tool",
+        "failure_mode_addressed": "TWF",
+        "part_ids": [
+          "P-TW-001"
+        ],
+        "window_id": "W-2026-12-02-A",
+        "requires_human_review": true
+      },
+      "review_reasons": [
+        "agent_requested"
+      ],
+      "validation_errors": [],
+      "tools": [
+        [
+          "check_spare_parts",
+          {
+            "machine_type": "L",
+            "failure_mode": "TWF"
+          }
+        ],
+        [
+          "find_maintenance_window",
+          {
+            "duration_h": 2,
+            "urgency": "shift"
+          }
+        ],
+        [
+          "get_maintenance_policy",
+          {
+            "risk_band": "high",
+            "failure_mode": "TWF"
+          }
+        ]
+      ],
+      "cost": {
+        "preventive_eur": 300.0,
+        "breakdown_eur": 4000.0,
+        "downtime_h": 1.0
+      },
+      "steps": [
+        "Get approval from the maintenance supervisor before starting.",
+        "Stop the machine for window W-2026-12-02-A starting at 2026-12-02T06:00.",
+        "Take part P-TW-001 Cutting tool insert from stock.",
+        "Replace the worn cutting tool.",
+        "Record the tool wear of 215.0 min in the order."
+      ],
+      "justification": "This order replaces the cutting tool during the planned shift window with supervisor approval as required.",
+      "ui_ok": true,
+      "ui_unknown_reason_keys": [],
+      "ui_degraded_banner": false,
+      "budget_used_after": 6
+    },
+    {
+      "case": "C_high_cost",
+      "arm": "cost",
+      "status": "ok",
+      "risk_band": "high",
+      "review": true,
+      "degraded": false,
+      "degraded_reason": "",
+      "latency_s": 4.098,
+      "cost_eur": 0.002585,
+      "tokens": 4981,
+      "llm": {
+        "model": "gemini-3.5-flash-lite",
+        "llm_calls": 3,
+        "tokens_in": 4369,
+        "tokens_out": 387,
+        "tokens_thinking": 225,
+        "cache_hit": false,
+        "retries": 0,
+        "rate_limited": false
+      },
+      "decision_source": "llm",
+      "decision_errors": [],
+      "writing_warnings": [],
+      "versions": {
+        "component_a": "maintai-gb-sigmoid-v1",
+        "component_b": "gemini-3.5-flash-lite|agent-v1",
+        "strategy": "cost",
+        "bandit": "ts-v1"
+      },
+      "decision": {
+        "priority": "P2",
+        "action": "replace_tool",
+        "failure_mode_addressed": "TWF",
+        "part_ids": [
+          "P-TW-001"
+        ],
+        "window_id": "W-2026-12-02-A",
+        "requires_human_review": true
+      },
+      "review_reasons": [
+        "agent_requested"
+      ],
+      "validation_errors": [],
+      "tools": [
+        [
+          "check_spare_parts",
+          {
+            "failure_mode": "TWF",
+            "machine_type": "L"
+          }
+        ],
+        [
+          "find_maintenance_window",
+          {
+            "duration_h": 2,
+            "urgency": "shift"
+          }
+        ],
+        [
+          "get_maintenance_policy",
+          {
+            "failure_mode": "TWF",
+            "risk_band": "high"
+          }
+        ]
+      ],
+      "cost": {
+        "preventive_eur": 300.0,
+        "breakdown_eur": 4000.0,
+        "downtime_h": 1.0
+      },
+      "steps": [
+        "Reserve 1 unit of Cutting tool insert (part id P-TW-001) from stock and secure maintenance window W-2026-12-02-A starting at 2026-12-02T06:00.",
+        "Submit the work order for human review by the maintenance supervisor as required by plant policy.",
+        "Replace the cutting tool during the planned window of 1 h.",
+        "Record the tool wear of 215 min in the order."
+      ],
+      "justification": "A breakdown would cost about 13.3 times more than this intervention, which needs 1 h of planned downtime. The high risk band with a failure probability of 59.25 % and tool wear of 215 min requires immediate action. The decision is to replace the tool in window W-2026-12-02-A and request a human review. This order secures parts, requests approval, performs the replacement, and records the reading.",
+      "ui_ok": true,
+      "ui_unknown_reason_keys": [],
+      "ui_degraded_banner": false,
+      "budget_used_after": 9
+    },
+    {
+      "case": "C_high_root_cause",
+      "arm": "root_cause",
+      "status": "ok",
+      "risk_band": "high",
+      "review": false,
+      "degraded": false,
+      "degraded_reason": "",
+      "latency_s": 3.393,
+      "cost_eur": 0.002806,
+      "tokens": 5351,
+      "llm": {
+        "model": "gemini-3.5-flash-lite",
+        "llm_calls": 3,
+        "tokens_in": 4679,
+        "tokens_out": 383,
+        "tokens_thinking": 289,
+        "cache_hit": false,
+        "retries": 0,
+        "rate_limited": false
+      },
+      "decision_source": "llm",
+      "decision_errors": [],
+      "writing_warnings": [],
+      "versions": {
+        "component_a": "maintai-gb-sigmoid-v1",
+        "component_b": "gemini-3.5-flash-lite|agent-v1",
+        "strategy": "root_cause",
+        "bandit": "ts-v1"
+      },
+      "decision": {
+        "priority": "P2",
+        "action": "replace_tool",
+        "failure_mode_addressed": "TWF",
+        "part_ids": [
+          "P-TW-001"
+        ],
+        "window_id": "W-2026-12-02-A",
+        "requires_human_review": false
+      },
+      "review_reasons": [],
+      "validation_errors": [],
+      "tools": [
+        [
+          "check_spare_parts",
+          {
+            "machine_type": "L",
+            "failure_mode": "TWF"
+          }
+        ],
+        [
+          "check_spare_parts",
+          {
+            "machine_type": "L",
+            "failure_mode": "HDF"
+          }
+        ],
+        [
+          "find_maintenance_window",
+          {
+            "urgency": "shift",
+            "duration_h": 2
+          }
+        ],
+        [
+          "get_maintenance_policy",
+          {
+            "failure_mode": "TWF",
+            "risk_band": "high"
+          }
+        ]
+      ],
+      "cost": {
+        "preventive_eur": 300.0,
+        "breakdown_eur": 4000.0,
+        "downtime_h": 1.0
+      },
+      "steps": [
+        "Measure the tool wear of 215.0 min to confirm the tool wear failure mode.",
+        "Reserve 1 unit of Cutting tool insert with part id P-TW-001.",
+        "Perform the tool replacement during maintenance window W-2026-12-02-A starting at 2026-12-02T06:00.",
+        "Record the final tool wear reading and verify normal operation after replacement."
+      ],
+      "justification": "The failure probability is 59.25 percent driven by tool wear of 215.0 min, mechanical power of 8796.5 W, and a temperature difference (process minus air) of 7.9 K. The decision is to replace the cutting tool during maintenance window W-2026-12-02-A using part id P-TW-001.",
+      "ui_ok": true,
+      "ui_unknown_reason_keys": [],
+      "ui_degraded_banner": false,
+      "budget_used_after": 12
+    },
+    {
+      "case": "D_critical_review_cost",
+      "arm": "cost",
+      "status": "ok",
+      "risk_band": "critical",
+      "review": true,
+      "degraded": false,
+      "degraded_reason": "",
+      "latency_s": 30.955,
+      "cost_eur": 0.002249,
+      "tokens": 4821,
+      "llm": {
+        "model": "gemini-3.5-flash-lite",
+        "llm_calls": 3,
+        "tokens_in": 4355,
+        "tokens_out": 286,
+        "tokens_thinking": 180,
+        "cache_hit": false,
+        "retries": 1,
+        "rate_limited": true
+      },
+      "decision_source": "llm",
+      "decision_errors": [],
+      "writing_warnings": [],
+      "versions": {
+        "component_a": "maintai-gb-sigmoid-v1",
+        "component_b": "gemini-3.5-flash-lite|agent-v1",
+        "strategy": "cost",
+        "bandit": "ts-v1"
+      },
+      "decision": {
+        "priority": "P1",
+        "action": "cooling_check",
+        "failure_mode_addressed": "HDF",
+        "part_ids": [
+          "P-CL-010"
+        ],
+        "window_id": null,
+        "requires_human_review": true
+      },
+      "review_reasons": [
+        "critical_risk",
+        "agent_requested"
+      ],
+      "validation_errors": [],
+      "tools": [
+        [
+          "check_spare_parts",
+          {
+            "machine_type": "H",
+            "failure_mode": "HDF"
+          }
+        ],
+        [
+          "find_maintenance_window",
+          {
+            "duration_h": 2,
+            "urgency": "now"
+          }
+        ],
+        [
+          "get_maintenance_policy",
+          {
+            "failure_mode": "HDF",
+            "risk_band": "critical"
+          }
+        ]
+      ],
+      "cost": {
+        "preventive_eur": 300.0,
+        "breakdown_eur": 4000.0,
+        "downtime_h": 2.0
+      },
+      "steps": [
+        "Reserve 1 unit of Coolant pump seal kit part id P-CL-010 from local stock.",
+        "Inspect the cooling system for heat dissipation risk.",
+        "Record the completion of the check before restarting."
+      ],
+      "justification": "A breakdown would cost about 13.3 times more than this intervention, which needs 2.0 h of planned downtime. The failure probability of 93.41 percent indicates critical risk from heat dissipation failure. The decision requires a person to review the order before any action. Proceed with the cooling check using part P-CL-010.",
+      "ui_ok": true,
+      "ui_unknown_reason_keys": [],
+      "ui_degraded_banner": false,
+      "budget_used_after": 16
+    },
+    {
+      "case": "E_degraded_no_key",
+      "arm": "checklist",
+      "status": "ok",
+      "risk_band": "critical",
+      "review": true,
+      "degraded": true,
+      "degraded_reason": "llm_unavailable: GEMINI_API_KEY is not set",
+      "latency_s": 0.055,
+      "cost_eur": 0.0,
+      "tokens": 0,
+      "llm": {
+        "model": "",
+        "llm_calls": 0,
+        "tokens_in": 0,
+        "tokens_out": 0,
+        "tokens_thinking": 0,
+        "cache_hit": false,
+        "retries": 0,
+        "rate_limited": false
+      },
+      "decision_source": "rules_degraded",
+      "decision_errors": [],
+      "writing_warnings": [],
+      "versions": {
+        "component_a": "maintai-gb-sigmoid-v1",
+        "component_b": "none|agent-v1",
+        "strategy": "checklist",
+        "bandit": "ts-v1"
+      },
+      "decision": {
+        "priority": "P1",
+        "action": "cooling_check",
+        "failure_mode_addressed": "HDF",
+        "part_ids": [
+          "P-CL-010"
+        ],
+        "window_id": "W-2026-12-01-A",
+        "requires_human_review": true
+      },
+      "review_reasons": [
+        "critical_risk",
+        "agent_requested"
+      ],
+      "validation_errors": [],
+      "tools": [
+        [
+          "check_spare_parts",
+          {
+            "failure_mode": "HDF",
+            "machine_type": "H"
+          }
+        ],
+        [
+          "find_maintenance_window",
+          {
+            "urgency": "now",
+            "duration_h": 1.0
+          }
+        ]
+      ],
+      "cost": {
+        "preventive_eur": 300.0,
+        "breakdown_eur": 4000.0,
+        "downtime_h": 2.0
+      },
+      "steps": [
+        "Inspect the machine for the predicted failure mode.",
+        "Record the findings in the work order."
+      ],
+      "justification": "Failure risk 93% (critical), most likely mode HDF.",
+      "ui_ok": true,
+      "ui_unknown_reason_keys": [],
+      "ui_degraded_banner": true,
+      "budget_used_after": 16
+    }
+  ]
+}

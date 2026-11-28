@@ -22,6 +22,7 @@
 | P6 | `check.py` passes on a clean clone; `check.py --url` passes against Render | All | `docs/INTEGRATION_CHECKLIST.md`, section 7 |
 | P7 | Gemini budget approved by Manuela (section 8) | Manuela | Written approval in the team chat |
 | P8 | Prompts frozen for the duration of the campaign | WP3 | A new prompt version starts a new policy and discards the earlier ratings |
+| P9 | The economic-faithfulness error found with real Gemini on 28 Nov 2026 is fixed (no invented cost ratio or downtime in low-risk notes) and the prompt version is bumped to `agent-v2` | WP3 | One controlled real call: `eval/controlled_validation/controlled_gemini_validation.py --only B_low_cost` (`docs/GEMINI_VALIDATION.md`) |
 
 ## 3. Participants
 
@@ -93,6 +94,7 @@ The free tier allows about **500 requests a day** to Gemini Flash-Lite; Render r
 | **Campaign calls** | 165 × *k* × 1.1 ≈ **182 (k = 1) to 545 (k = 3)**; about **330 with k ≈ 1.8** | Formula |
 | Reserve kept every day | 100 calls (check.py, professor, demo, evaluation re-runs) | Decision |
 | Campaign calls allowed per day | 400 − 100 = **300** | Formula |
+| Participants at the same time | at most 2 (a 429 appeared at about 13 requests a minute on 28 Nov 2026) | `docs/GEMINI_VALIDATION.md` |
 
 So with *k* = 1 the campaign would fit in one day; with the measured mix (*k* ≈ 1.8, about 330 calls) it needs two days (for example Saturday and Sunday morning). The evaluation (WP4) uses its own quota and is planned separately. Before starting, WP3 confirms *k* and the retry policy, and Manuela approves the number of days.
 
@@ -113,6 +115,8 @@ It is **paused** (and resumed only after the cause is fixed and noted under "Dev
 **If the target is not reached.** 150 is a target, not a requirement: quota, time or the number of participants may stop the campaign earlier. In that case we report the number of eligible ratings reached and the reason, and we run the same analysis (section 11) on what we have. With fewer ratings a "clear preference" is less likely, because it also needs at least 30 counted ratings for that style. We do not lower the thresholds, add simulated ratings or pool ratings from stub or degraded requests to make up the difference.
 
 It is **never** stopped or extended because a style looks better or worse. During the campaign the coordinator watches only the operational numbers (eligible ratings, response rate, degraded share, errors), not the per-style results.
+
+Operational details (participant sheets, message, shifts, tracking table, launch checklist): [`docs/RL_CAMPAIGN_KIT.md`](RL_CAMPAIGN_KIT.md).
 
 ## 10. Evidence to export
 
