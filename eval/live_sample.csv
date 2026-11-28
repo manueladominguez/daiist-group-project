@@ -1,0 +1,11 @@
+id,risk_band,latency_s,tokens,cost_eur,llm_calls,retries,rate_limited,degraded,degraded_reason,date
+c27,low,1.549,1304,0.000608,1,0,False,False,,2026-11-28
+c14,low,0.995,1320,0.000697,1,0,False,False,,2026-11-28
+c09,low,0.95,1216,0.000508,1,0,False,False,,2026-11-28
+c12,low,1.051,1350,0.000759,1,0,False,False,,2026-11-28
+c26,low,0.731,1210,0.000503,1,0,False,False,,2026-11-28
+c17,low,1.013,1306,0.000657,1,0,False,False,,2026-11-28
+c01,critical,2.974,4822,0.002337,3,0,False,False,,2026-11-28
+c21,critical,3.147,4748,0.002273,3,0,False,False,,2026-11-28
+c02,critical,0.031,0,0.0,0,0,False,True,llm_unavailable: rate limit: 12 requests in the last minute,2026-11-28
+c33,critical,0.017,0,0.0,0,0,False,True,llm_unavailable: rate limit: 12 requests in the last minute,2026-11-28

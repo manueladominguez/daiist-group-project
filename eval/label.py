@@ -20,9 +20,11 @@ import argparse
 import csv
 import json
 import random
+import sys
 from pathlib import Path
 
 EVAL = Path(__file__).resolve().parent
+sys.path.insert(0, str(EVAL.parent))
 TO_LABEL = EVAL / "to_label.csv"
 LABELS = EVAL / "human_labels.csv"
 
@@ -44,7 +46,8 @@ def show(row: dict) -> None:
     modes = ", ".join(f"{m['mode']} {m['p']:.0%}" for m in risk.get("likely_modes", []))
     print(f"Risk: p_fail {risk['p_fail']:.1%}, band {risk['risk_band']}, modes [{modes}], "
           f"out of range {risk.get('ood_flags') or 'no'}")
-    for call in outputs["component_b"].get("tool_calls", []):
+    import evaluate
+    for call in outputs["component_b"].get("tool_calls", []) + evaluate.cost_facts_call(row["input"], draft):
         print(f"Tool {call['name']}({call['arguments']}) -> {json.dumps(call['result'], ensure_ascii=False)[:300]}")
     print(f"\nORDER  action {draft['action']}, priority {draft['priority']}, mode {draft['failure_mode_addressed']}, "
           f"review {'yes' if order['review'] else 'no'} {order.get('review_reasons') or ''}")

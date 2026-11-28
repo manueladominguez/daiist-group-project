@@ -16,6 +16,13 @@ What it measures, and which go / no-go criterion of REPORT.md it feeds:
      agent AND for the rule-based template (the no-LLM baseline), and the judge's
      agreement with our own labels in eval/human_labels.csv (Cohen's kappa).  -> 5
   6. Tokens, euros and latency (p50 / p95) per request.                     -> 7
+     Tokens and euros are the LIVE-EQUIVALENT usage that every cache entry
+     stores (what the same call cost when it was made), so they are real even
+     when the run replays eval/llm_cache. Latency of a cached run is NOT real
+     (no Gemini call is made), so criterion 7 uses a live sample instead:
+     EVAL_LIVE_SAMPLE=10 uv run python main.py evaluate  (needs GEMINI_API_KEY;
+     about 25 Gemini calls). It is saved in eval/live_sample.csv and reused by
+     later runs, so the cached re-runs keep the real latency.
   7. Errors by component and by kind of case (eval/errors.csv).
 
 Everything is written to eval/ and committed, so every number in REPORT.md can be
@@ -27,9 +34,11 @@ from __future__ import annotations
 
 import csv
 import json
+import os
 import sys
 import time
 from pathlib import Path
+from types import SimpleNamespace
 
 import numpy as np
 import pandas as pd
@@ -57,6 +66,7 @@ from maintai.schemas import (
 CASES = EVAL / "cases.csv"
 RESULTS = EVAL / "results.csv"
 HUMAN_LABELS = EVAL / "human_labels.csv"
+LIVE_SAMPLE = EVAL / "live_sample.csv"
 TO_LABEL = EVAL / "to_label.csv"
 BOOTSTRAP = 2000
 SEED = 0
@@ -162,6 +172,20 @@ def component_b_checks(result: dict) -> dict:
         "review_rule_required": must_review,
         "review_rule_applied": (not must_review) or bool(result["review"]),
     }
+
+
+def cost_facts_call(raw_input: str, draft: dict) -> list[dict]:
+    """The cost facts the agent's writing call receives (agent._cost_facts: downtime and breakdown/preventive
+    ratio, never euros), shown to the judge as one more tool result so that R3 can check them.
+    Empty for monitor orders (failure mode none): the low-risk writing call receives no cost facts."""
+    machine = inputs.parse(raw_input)
+    if isinstance(machine, OutOfScope) or draft.get("failure_mode_addressed") in (None, FailureMode.NONE.value):
+        return []
+    decision = SimpleNamespace(action=Action(draft["action"]), failure_mode_addressed=FailureMode(draft["failure_mode_addressed"]))
+    facts = agent._cost_facts(machine, decision)
+    return [{"name": "estimate_costs (cost facts given to the writer, no euros)",
+             "arguments": {"action": draft["action"], "failure_mode": draft["failure_mode_addressed"], "machine_type": machine.type.value},
+             "result": facts}] if facts else []
 
 
 def template_result(raw_input: str) -> dict | None:
@@ -336,12 +360,64 @@ def run_cases() -> pd.DataFrame:
             "review_reasons": ";".join(order.get("review_reasons", [])),
             **{f"check_{k}": v for k, v in checks.items()},
             "latency_s": round(latency, 3), "tokens": result["tokens"], "cost_eur": result["cost_eur"],
+            **live_usage(result),
             "degraded": bool(result.get("degraded", False)),
             "version_a": result["versions"].get("component_a"), "version_b": result["versions"].get("component_b"),
             "input": case["input"], "outputs": json.dumps(result["outputs"], ensure_ascii=False),
         })
     print()
     return pd.DataFrame(rows)
+
+
+def live_usage(result: dict) -> dict:
+    """Tokens and euros the request costs live. A cache hit replays a call made earlier, and the cache
+    entry stores that call's real usage (pipeline: llm_live_equivalent), so this is real usage either way."""
+    live = result.get("llm_live_equivalent") or {}
+    tokens = int(live.get("tokens_in", 0)) + int(live.get("tokens_out", 0)) + int(live.get("tokens_thinking", 0))
+    return {"live_tokens": tokens, "live_cost_eur": float(live.get("cost_eur", 0.0) or 0.0),
+            "cache_hit": bool(result.get("cache_hit", False))}
+
+
+def live_sample(results: pd.DataFrame) -> pd.DataFrame:
+    """Real latency: some in-scope cases run again with LLM_CACHE=off, so every Gemini call is live.
+
+    Runs only when EVAL_LIVE_SAMPLE=N is set (it spends quota); otherwise the last sample saved in
+    eval/live_sample.csv is reused. The cases are spread over the risk bands (every k-th in-scope case
+    sorted by p_fail), so the sample has both one-call (low risk) and three-call orders.
+    """
+    n = int(os.environ.get("EVAL_LIVE_SAMPLE", "0") or 0)
+    if n <= 0:
+        return pd.read_csv(LIVE_SAMPLE) if LIVE_SAMPLE.is_file() else pd.DataFrame()
+    from maintai import config
+    if not config.gemini_api_key():
+        print("EVAL_LIVE_SAMPLE is set but GEMINI_API_KEY is not: live sample skipped.")
+        return pd.read_csv(LIVE_SAMPLE) if LIVE_SAMPLE.is_file() else pd.DataFrame()
+    pool = results[results["decision"] != "refuse"].sort_values("p_fail").reset_index(drop=True)
+    picks = pool.iloc[np.linspace(0, len(pool) - 1, min(n, len(pool))).round().astype(int)]
+    previous = os.environ.get("LLM_CACHE")
+    os.environ["LLM_CACHE"] = "off"
+    rows = []
+    try:
+        for i, (_, case) in enumerate(picks.iterrows(), 1):
+            print(f"  live {i}/{len(picks)}", end="\r", flush=True)
+            started = time.perf_counter()
+            result = pipeline.run(case["input"])
+            latency = time.perf_counter() - started
+            rows.append({"id": case["id"], "risk_band": case["risk_band"], "latency_s": round(latency, 3),
+                         "tokens": result["tokens"], "cost_eur": result["cost_eur"],
+                         "llm_calls": result.get("llm_calls"), "retries": result.get("retries"),
+                         "rate_limited": result.get("rate_limited"), "degraded": bool(result.get("degraded")),
+                         "degraded_reason": result.get("degraded_reason", ""),
+                         "date": time.strftime("%Y-%m-%d")})
+    finally:
+        if previous is None:
+            os.environ.pop("LLM_CACHE", None)
+        else:
+            os.environ["LLM_CACHE"] = previous
+    print()
+    sample = pd.DataFrame(rows)
+    sample.to_csv(LIVE_SAMPLE, index=False)
+    return sample
 
 
 def run_judge(results: pd.DataFrame) -> tuple[pd.DataFrame, Judge]:
@@ -357,6 +433,7 @@ def run_judge(results: pd.DataFrame) -> tuple[pd.DataFrame, Judge]:
         if template:
             candidates["template"] = (template["risk"], template["tool_calls"], template["draft"], template["review"])
         for writer, (risk, calls, draft, review) in candidates.items():
+            calls = list(calls) + cost_facts_call(r["input"], draft)
             verdict = judge.grade(build_prompt(r["input"], risk, calls, draft, review))
             rows.append({"id": r["id"], "kind": r["kind"], "writer": writer,
                          "judge_pass": None if verdict is None else int(verdict["pass"]),
@@ -388,7 +465,7 @@ def main() -> None:
 
     by_kind = results.groupby("kind").agg(cases=("id", "count"), correct=("correct", "mean"),
                                           sent_to_review=("review", "mean"), median_latency_s=("latency_s", "median"),
-                                          mean_cost_eur=("cost_eur", "mean")).round(3)
+                                          mean_cost_eur=("live_cost_eur", "mean")).round(3)
     print(by_kind.to_string())
 
     in_scope = results[results["decision"] != "refuse"]
@@ -403,16 +480,31 @@ def main() -> None:
         "ungrounded_orders": in_scope.loc[~in_scope["check_grounded"].astype(bool), "id"].tolist(),
     }
     lat = results["latency_s"]
+    sample = live_sample(results)
+    live_ok = sample[~sample["degraded"].astype(bool)] if len(sample) else sample
+    eur_mean = round(float(in_scope["live_cost_eur"].mean()), 6) if len(in_scope) else 0.0
     operations = {
-        "latency_p50_s": round(float(lat.quantile(0.5)), 3),
-        "latency_p95_s": round(float(lat.quantile(0.95)), 3),
-        "tokens_per_request_mean": round(float(in_scope["tokens"].mean()), 1) if len(in_scope) else 0.0,
-        "eur_per_request_mean": round(float(in_scope["cost_eur"].mean()), 6) if len(in_scope) else 0.0,
-        "eur_per_request_max": round(float(in_scope["cost_eur"].max()), 6) if len(in_scope) else 0.0,
-        "requests_with_llm_calls": int((in_scope["tokens"] > 0).sum()),
+        # tokens and euros: live-equivalent usage (real, also on cache hits); in-scope requests only
+        "tokens_per_request_mean": round(float(in_scope["live_tokens"].mean()), 1) if len(in_scope) else 0.0,
+        "tokens_per_request_max": int(in_scope["live_tokens"].max()) if len(in_scope) else 0,
+        "eur_per_request_mean": eur_mean,
+        "eur_per_request_max": round(float(in_scope["live_cost_eur"].max()), 6) if len(in_scope) else 0.0,
+        "eur_per_month_at_business_volume": round(eur_mean * 1000 * 30, 2),
+        "requests_with_llm_usage": int((in_scope["live_tokens"] > 0).sum()),
         "degraded_share": rate(in_scope["degraded"]),
-        "run_cost_eur": round(float(results["cost_eur"].sum()), 4),
-        "run_tokens": int(results["tokens"].sum()),
+        "cache_hit_share": rate(in_scope["cache_hit"]),
+        # latency of this run: NOT real when the calls come from the cache
+        "latency_this_run_p50_s": round(float(lat.quantile(0.5)), 3),
+        "latency_this_run_p95_s": round(float(lat.quantile(0.95)), 3),
+        "latency_this_run_is_live": not bool(in_scope["cache_hit"].any()),
+        # latency measured live (eval/live_sample.csv), non-degraded requests only
+        "live_sample_requests": len(sample),
+        "live_sample_degraded": int(sample["degraded"].astype(bool).sum()) if len(sample) else 0,
+        "live_sample_date": str(sample["date"].iloc[0]) if len(sample) else None,
+        "live_latency_p50_s": round(float(live_ok["latency_s"].quantile(0.5)), 2) if len(live_ok) else None,
+        "live_latency_p95_s": round(float(live_ok["latency_s"].quantile(0.95)), 2) if len(live_ok) else None,
+        "live_latency_max_s": round(float(live_ok["latency_s"].max()), 2) if len(live_ok) else None,
+        "live_eur_per_request_mean": round(float(live_ok["cost_eur"].mean()), 6) if len(live_ok) else None,
     }
     print(json.dumps({"component_b": component_b, "operations": operations}, indent=2))
 
@@ -472,7 +564,13 @@ def main() -> None:
                           "kappa": human.get("cohen_kappa"), "human_labels": human.get("labels", 0),
                           "target": "agent pass >= 0.80 and above the template, kappa >= 0.6 on >= 20 labels"},
             "6_out_of_scope": {"all_refused_before_model": oos_ok, "target": "all"},
-            "7_operations": {"p95_s": operations["latency_p95_s"], "eur_per_request": operations["eur_per_request_mean"],
+            "7_operations": {"live_p95_s": operations["live_latency_p95_s"],
+                             "live_sample_requests": operations["live_sample_requests"],
+                             "eur_per_request": operations["eur_per_request_mean"],
+                             "note": ("latency from a live sample (eval/live_sample.csv); live traffic is in the "
+                                      "Monitoring tab" if operations["live_latency_p95_s"] is not None else
+                                      "latency NOT measured live in this run: run with EVAL_LIVE_SAMPLE=10, "
+                                      "or use the Monitoring tab"),
                              "target": "p95 < 15 s and < €0.01 per request"},
         },
     }

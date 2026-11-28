@@ -29,6 +29,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 import sys
 import time
 from pathlib import Path
@@ -101,6 +102,20 @@ def build_prompt(reading: str, risk: dict, tool_calls: list, draft: dict, review
     )
 
 
+_LONG_FLOAT = re.compile(r"-?\d+\.\d{7,}(?:e-?\d+)?")
+
+
+def normalise(prompt: str) -> str:
+    """Round long floats to 6 significant digits. Component A's probabilities differ in the 16th decimal
+    between machines (e.g. 0.0016620342737477599 on macOS, ...584 on Linux); without this the same order
+    would give a different prompt, a different cache key and a new paid verdict on every computer."""
+    return _LONG_FLOAT.sub(lambda m: f"{float(m.group()):.6g}", prompt)
+
+
+def cache_key(model: str, prompt: str) -> str:
+    return hashlib.sha256(f"{RUBRIC_VERSION}|{model}|{normalise(prompt)}".encode()).hexdigest()
+
+
 def _load_cache() -> dict:
     cache = {}
     if CACHE.is_file():
@@ -134,7 +149,8 @@ class Judge:
         self.tokens = 0
 
     def grade(self, prompt: str) -> dict | None:
-        key = hashlib.sha256(f"{RUBRIC_VERSION}|{self.model}|{prompt}".encode()).hexdigest()
+        prompt = normalise(prompt)
+        key = cache_key(self.model, prompt)
         if key in self._cache:
             return self._cache[key]
         if not self.available:
